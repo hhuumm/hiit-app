@@ -8,105 +8,72 @@ import React, { useState , useRef } from 'react';
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import AudioPlayer from 'react-audio-player';
 
 function App() {
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  }));
-  const [time, setTime] = useState(0);
+  const [time, setTime] = useState(60);
   const [isRunning, setIsRunning] = useState(false);
-  const [intervalId, setIntervalId] = useState(null);
-  const timeRef = useRef(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const intervalRef = useRef(null);
+  const rap = useRef();
 
   function toggleWorkout() {
+    console.log(rap.current.audioEl)
     if (isRunning) {
       stopWorkout();
     } else {
+
       startWorkout();
     }
 
-    function startWorkout() {
-      setTime(60);
-      timeRef.current = 60; // Set the latest time value
-      const interval = setInterval(() => {
-        timeRef.current = timeRef.current - 1; // Use the latest time value
-        setTime(timeRef.current);
-        if (timeRef.current === 0) {
-          clearInterval(interval);
-          setIsRunning(false);
-        }
-      }, 1000);
-      setIntervalId(interval); // Save the interval ID in state
-      setIsRunning(true);
-    }
-
-    function stopWorkout() {
-      setTime(0);
-      setIsRunning(false);
-      clearInterval(intervalId); // Clear the interval using the saved ID
-      setIntervalId(null); // Reset the interval ID to null
-    }
-    
   }
 
-  const [alignment, setAlignment] = React.useState('left');
+  
+  function startWorkout() {
+    setIsRunning(true);
 
-  const handleAlignment = (event, newAlignment) => {
-    setAlignment(newAlignment);
-  };
+    //play the audio when the timer starts
+    intervalRef.current = setInterval(() => {
+      setTime((prevTime) => {
+        if (prevTime <= 1) {
+          stopWorkout();
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+  
+  
+  }
+
+  function stopWorkout() {
+    setIsRunning(false);
+    clearInterval(intervalRef.current);
+    setIsPlaying(false);
+    setTime(60);
+  }
+
 
   return (
 
  
     <div className="App">
-    <Stack>
-        <Item>
-        <h1>{time}</h1>
-        </Item>
-        <Item>
-          <ToggleButtonGroup
-            color="primary"
-            value={alignment}
-            exclusive
-            onChange={handleAlignment}
-            aria-label="text alignment"
-          >
-              <ToggleButton value="left" aria-label="left aligned">
-              <span role="img" aria-label="fire">🔥</span>
-              </ToggleButton>
-              <ToggleButton value="center" aria-label="centered">
-              <span role="img" aria-label="fire">🔥</span>
-              <span role="img" aria-label="fire">🔥</span>
-              </ToggleButton>
-              <ToggleButton value="right" aria-label="right aligned">
-              <span role="img" aria-label="fire">🔥</span>
-              <span role="img" aria-label="fire">🔥</span>
-              <span role="img" aria-label="fire">🔥</span>
-              </ToggleButton>
-          </ToggleButtonGroup>
-        </Item>
-        <Item>
-
-        <Button
-          variant={isRunning ? 'outlined' : 'contained'}
-          color={isRunning ? 'error' : 'primary'}
-          style={{ marginTop: '1rem' }}
-          onClick={toggleWorkout}
-        >
-          {isRunning ? 'Stop' : 'Start'}
-        </Button>
-        </Item>
-        
-        
-    </Stack>
-   
-
-
-    </div>
+    <h1>{time}</h1>
+    <AudioPlayer
+      ref={rap}
+      src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+      controls
+      autoPlay={isRunning}
+    />
+    <Button
+      variant={isRunning ? 'outlined' : 'contained'}
+      color={isRunning ? 'error' : 'primary'}
+      style={{ marginTop: '1rem' }}
+      onClick={toggleWorkout}
+    >
+      {isRunning ? 'Stop' : 'Start'}
+    </Button>
+  </div>
   );
 }
 export default App;
